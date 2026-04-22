@@ -48,17 +48,6 @@ condition (0) within each experiment. No directional prediction is made
 about the relative magnitudes of effects across conditions A, B, C; the 
 theory does not specify which surface features the model is most sensitive to.
 
-**H3 (reasoning effort as natural control):** The magnitude of perturbation 
-effects will be smaller under high reasoning effort than under low reasoning 
-effort, operationalized as a significant negative `condition × reasoning_effort` 
-interaction in the regression model specified in §6.
-
-*Alternative outcome prepared for:* If the interaction is null or reversed 
-(reasoning effort does not reduce perturbation susceptibility, or increases 
-it), this will be interpreted as evidence that chain-of-thought reasoning 
-launders autoregressive effects through longer generations rather than 
-overriding them. The discussion section will address both outcomes.
-
 ## 4. Design
 
 **Model:** Claude Opus 4.7 (`claude-opus-4-7`), accessed via Anthropic API.
@@ -68,14 +57,14 @@ overriding them. The discussion section will address both outcomes.
   Q5 hyperbolic discounting, Q13 Wason selection task
 - Condition (4 levels): 0 (canonical Bini prompt), A (numerical perturbation), 
   B (non-numeric token perturbation), C (experiment-specific third perturbation)
-- Reasoning effort (2 levels): low, high (via Claude adaptive thinking `effort` parameter)
 
 **Held constant:**
+- Reasoning effort: low (Claude adaptive thinking, `effort: "low"`)
 - Temperature: 0.5 (matching Bini et al.)
 - top-p: 0.9; top-k: 50 (Bini defaults)
 - Prompt structure: verbatim Bini format including JSON output instructions
 
-**Sample size:** 50 responses per cell × 32 cells = 1,600 total responses.
+**Sample size:** 50 responses per cell × 16 cells = 800 total responses.
 
 **Perturbation definitions (specified ex ante):**
 
@@ -92,8 +81,9 @@ overriding them. The discussion section will address both outcomes.
   calculator $15 vs. jacket $15 / calculator $125, save $5)
 - Condition A: Prices replaced ($125 → $127; $15 → $17). $5 savings preserved. 
   Objects unchanged.
-- Condition B: "Jacket" and "calculator" replaced with "headphones" and "plant"[two objects of
-  similar expensive/cheap character but less canonical in the KT tradition]. Prices unchanged.
+- Condition B: "Jacket" and "calculator" replaced with "headphones" and "plant"
+  [two objects of similar expensive/cheap character but less canonical in the KT
+  tradition]. Prices unchanged.
 - Condition C: Response format "Yes"/"No" replaced with "make the trip"/"don't 
   make the trip."
 
@@ -143,22 +133,18 @@ cell, the cell's results will be flagged in the paper.
 
 **Primary analysis:** One logistic regression per experiment (4 total):
 
-`logit(P(human_like = 1)) = β₀ + β₁·condition_A + β₂·condition_B + β₃·condition_C 
-+ β₄·high_effort + β₅·(condition_A × high_effort) + β₆·(condition_B × high_effort) 
-+ β₇·(condition_C × high_effort)`
+`logit(P(human_like = 1)) = β₀ + β₁·condition_A + β₂·condition_B + β₃·condition_C`
 
-- Condition 0 and low reasoning effort are reference categories
+- Condition 0 is the reference category
 - For Q13, outcome is `correct` rather than `human_like`
-- Robust (cluster-robust) standard errors not required given the single-model, 
-  within-cell independence assumption; standard SEs reported
+- Standard (non-robust) SEs reported; within-cell independence is the 
+  justifying assumption
 
 **Hypothesis tests:**
 - H1: One-sided tests on β₁, β₂, β₃ (prediction: negative). Report p-values 
   and marginal effects (percentage-point differences from condition 0).
 - H2: Same tests as H1; the hypothesis is that each perturbation differs 
   from canonical, not a ranking among them.
-- H3: Joint Wald test on (β₅, β₆, β₇). Prediction: positive (high effort 
-  attenuates the negative perturbation effects).
 
 **Swamping criterion (H1, operationalized):** A perturbation is classified 
 as "swamping" the behavioral effect if the estimated proportion human_like 
@@ -198,10 +184,16 @@ et al. report for Claude 3 Opus (their closest available predecessor model).
 
 ## 8. Deviations and amendments
 
-Any departure from this plan after data collection begins will be 
-documented below with date and justification.
-
-*No amendments at time of commit.*
+**Amendment 1 — [4/22/2026]:** The original design included reasoning effort 
+(low vs. high) as a second factor, producing a 4 (experiment) × 4 (condition) 
+× 2 (effort) design with 1,600 responses. Due to time constraints on the 
+assignment deadline, the reasoning-effort factor has been removed prior to 
+data collection. All responses will be collected at `effort: "low"`, chosen 
+because it is the closer match to Bini et al.'s original experimental setup 
+(which used models without explicit reasoning traces). The original H3 
+(reasoning effort attenuates perturbation effects) is removed from the 
+confirmatory hypotheses and relocated to the paper's future-work discussion. 
+Total response count is reduced from 1,600 to 800.
 
 ---
 
@@ -215,3 +207,4 @@ in the paper and not treated as confirmatory tests:
 - Any reanalysis under alternative outcome definitions
 - Post-hoc subgroup comparisons
 - Effects of perturbations not specified in §4
+- Comparisons across reasoning effort levels

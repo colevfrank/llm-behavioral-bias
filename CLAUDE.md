@@ -8,7 +8,7 @@ Autoregression").
 
 ## Study design
 
-- **Model:** Claude Opus 4.7 (`claude-opus-4-7`), via Anthropic API
+- **Model:** Claude Opus 4.6 (`claude-opus-4-6`), via Anthropic API
 - **Experiments (4):** Q1 (diminishing sensitivity), Q4 (narrow framing), 
   Q5 (hyperbolic discounting), Q13 (Wason selection task) — all from Bini et al.
 - **Conditions per experiment (4):**

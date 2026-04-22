@@ -50,7 +50,7 @@ theory does not specify which surface features the model is most sensitive to.
 
 ## 4. Design
 
-**Model:** Claude Opus 4.7 (`claude-opus-4-7`), accessed via Anthropic API.
+**Model:** Claude Opus 4.6 (`claude-opus-4-6`), accessed via Anthropic API.
 
 **Factors:**
 - Experiment (4 levels): Q1 diminishing sensitivity, Q4 narrow framing, 
@@ -71,7 +71,7 @@ theory does not specify which surface features the model is most sensitive to.
 *Q1 — Diminishing sensitivity:*
 - Condition 0: Verbatim Kahneman & Tversky 1979 / Bini prompt
 - Condition A: Dollar amounts replaced ($1,000 → $1,037; $500 → $517; 
-  $2,000 → $2,041). Probabilities and labels unchanged.
+  $2,000 → $2,074). Probabilities and labels unchanged.
 - Condition B: Probability 0.5 replaced with 0.47. Dollar amounts and labels unchanged.
 - Condition C: Option labels "A"/"B" replaced with "the gamble"/"the certain amount." 
   Numbers unchanged.

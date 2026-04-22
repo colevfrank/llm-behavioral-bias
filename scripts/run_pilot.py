@@ -25,7 +25,6 @@ def main():
 
     print(f"\nLatency: {result['latency_ms']} ms")
     print(f"Usage:   {result['usage']}")
-    print(f"Thinking (summarized): {result['thinking']!r}")
     print(f"\nRaw text:\n{result['text']}")
 
     # Basic sanity check

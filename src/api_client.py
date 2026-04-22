@@ -7,7 +7,7 @@ import anthropic
 from dotenv import load_dotenv
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from src.config import MODEL, REASONING_EFFORT, TEMPERATURE
+from src.config import MODEL, TEMPERATURE
 
 load_dotenv()
 
@@ -27,21 +27,18 @@ def _get_client() -> anthropic.Anthropic:
 )
 def call_model(
     prompt: str,
-    reasoning_effort: str = REASONING_EFFORT,
     temperature: float = TEMPERATURE,
 ) -> dict:
     """Make a single synchronous call to the model.
 
     Args:
-        prompt: User message text.
-        reasoning_effort: Passed to adaptive thinking (default: REASONING_EFFORT = "low").
+        prompt:      User message text.
         temperature: Sampling temperature (default 0.5 per Bini et al.).
 
     Returns:
         dict with keys:
             raw_response: the full SDK response object
             text:         assistant text content (str)
-            thinking:     summarized thinking trace (str | None)
             usage:        token usage dict
             latency_ms:   wall-clock milliseconds for the API call
     """
@@ -50,29 +47,17 @@ def call_model(
     t0 = time.monotonic()
     response = client.messages.create(
         model=MODEL,
-        max_tokens=16000,
+        max_tokens=4096,
         temperature=temperature,
-        thinking={
-            "type": "adaptive",
-            "effort": reasoning_effort,
-            "display": "summarized",
-        },
         messages=[{"role": "user", "content": prompt}],
     )
     latency_ms = int((time.monotonic() - t0) * 1000)
 
-    text = ""
-    thinking = None
-    for block in response.content:
-        if block.type == "thinking":
-            thinking = getattr(block, "summary", None) or getattr(block, "thinking", None)
-        elif block.type == "text":
-            text = block.text
+    text = next((block.text for block in response.content if block.type == "text"), "")
 
     return {
         "raw_response": response,
         "text": text,
-        "thinking": thinking,
         "usage": {
             "input_tokens": response.usage.input_tokens,
             "output_tokens": response.usage.output_tokens,

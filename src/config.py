@@ -9,14 +9,12 @@ DATA_RAW_DIR = ROOT / "data" / "raw"
 DATA_PROCESSED_DIR = ROOT / "data" / "processed"
 
 # ── Model ──────────────────────────────────────────────────────────────────────
-MODEL = "claude-opus-4-7"
+MODEL = "claude-opus-4-6"
 TEMPERATURE = 0.5
 
 # ── Study design ──────────────────────────────────────────────────────────────
 EXPERIMENTS = ["Q1", "Q4", "Q5", "Q13"]
 CONDITIONS = ["0", "A", "B", "C"]
-REASONING_EFFORT = "low"  # held constant across all cells
-
 SAMPLES_PILOT = 5
 SAMPLES_MAIN = 50
 
@@ -24,11 +22,11 @@ SAMPLES_MAIN = 50
 # Each entry: (canonical_vowel, canonical_odd, canonical_even)
 # Condition 0 uses the classic E/K, 7/4 setup.
 # Conditions A/B/C will vary — populate once stimuli are written.
-Q13_CANONICAL: dict[str, tuple[str, str, str]] = {
-    "0": ("E", "7", "4"),
-    "A": ("TODO", "TODO", "TODO"),
-    "B": ("TODO", "TODO", "TODO"),
-    "C": ("TODO", "TODO", "TODO"),
+Q13_CANONICAL_CARDS = {
+    "0": {"cards": {"E", "K", "4", "7"}, "correct": {"E", "7"}, "human_like_error": {"E", "4"}},
+    "A": {"cards": {"U", "M", "6", "3"}, "correct": {"U", "3"}, "human_like_error": {"U", "6"}},
+    "B": {"cards": {"I", "Q", "8", "83"}, "correct": {"I", "83"}, "human_like_error": {"I", "8"}},
+    "C": {"cards": {"E", "K", "4", "7"}, "correct": {"E", "7"}, "human_like_error": {"E", "4"}},  # same as condition 0 — only the rule phrasing differs
 }
 
 

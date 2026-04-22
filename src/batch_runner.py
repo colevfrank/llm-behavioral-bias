@@ -8,7 +8,7 @@ from pathlib import Path
 import anthropic
 from dotenv import load_dotenv
 
-from src.config import MODEL, REASONING_EFFORT, TEMPERATURE, raw_output_path
+from src.config import MODEL, TEMPERATURE, raw_output_path
 
 load_dotenv()
 
@@ -25,21 +25,15 @@ def _get_client() -> anthropic.Anthropic:
 def _make_request(
     custom_id: str,
     prompt: str,
-    reasoning_effort: str,
     temperature: float,
-) -> anthropic.types.MessageCreateParamsNonStreaming:
+) -> dict:
     """Build one BatchRequest for the Messages Batch API."""
     return {
         "custom_id": custom_id,
         "params": {
             "model": MODEL,
-            "max_tokens": 16000,
+            "max_tokens": 4096,
             "temperature": temperature,
-            "thinking": {
-                "type": "adaptive",
-                "effort": reasoning_effort,
-                "display": "summarized",
-            },
             "messages": [{"role": "user", "content": prompt}],
         },
     }
@@ -70,7 +64,6 @@ def submit_batch(
         _make_request(
             custom_id=f"{experiment}_{condition}_{i:04d}",
             prompt=prompt,
-            reasoning_effort=REASONING_EFFORT,
             temperature=temperature,
         )
         for i in range(n_samples)
@@ -81,7 +74,7 @@ def submit_batch(
     return batch.id
 
 
-def poll_batch(batch_id: str, poll_interval_s: int = POLL_INTERVAL_S) -> anthropic.types.MessageBatch:
+def poll_batch(batch_id: str, poll_interval_s: int = POLL_INTERVAL_S):
     """Block until the batch is complete, printing status updates."""
     client = _get_client()
 
@@ -104,7 +97,7 @@ def retrieve_results(batch_id: str, out_path: Path) -> int:
     """Stream batch results and write to a JSONL file.
 
     Each line is a JSON object with:
-        custom_id, text, thinking, usage, error
+        custom_id, text, usage, error
 
     Returns:
         Number of successful results written.
@@ -119,15 +112,8 @@ def retrieve_results(batch_id: str, out_path: Path) -> int:
 
             if result.result.type == "succeeded":
                 msg = result.result.message
-                text = ""
-                thinking = None
-                for block in msg.content:
-                    if block.type == "thinking":
-                        thinking = getattr(block, "summary", None) or getattr(block, "thinking", None)
-                    elif block.type == "text":
-                        text = block.text
+                text = next((b.text for b in msg.content if b.type == "text"), "")
                 row["text"] = text
-                row["thinking"] = thinking
                 row["usage"] = {
                     "input_tokens": msg.usage.input_tokens,
                     "output_tokens": msg.usage.output_tokens,
@@ -136,7 +122,6 @@ def retrieve_results(batch_id: str, out_path: Path) -> int:
                 n_ok += 1
             else:
                 row["text"] = None
-                row["thinking"] = None
                 row["usage"] = None
                 row["error"] = result.result.type
 

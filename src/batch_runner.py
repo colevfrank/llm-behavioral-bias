@@ -8,7 +8,7 @@ from pathlib import Path
 import anthropic
 from dotenv import load_dotenv
 
-from src.config import MODEL, TEMPERATURE, raw_output_path
+from src.config import MODEL, REASONING_EFFORT, TEMPERATURE, raw_output_path
 
 load_dotenv()
 
@@ -48,17 +48,15 @@ def _make_request(
 def submit_batch(
     experiment: str,
     condition: str,
-    effort: str,
     prompt: str,
     n_samples: int,
     temperature: float = TEMPERATURE,
 ) -> str:
-    """Submit a batch for one (experiment, condition, effort) cell.
+    """Submit a batch for one (experiment, condition) cell.
 
     Args:
         experiment:  e.g. "Q1"
         condition:   e.g. "0", "A", "B", "C"
-        effort:      "low" or "high"
         prompt:      The full user-facing prompt string.
         n_samples:   How many independent samples to request.
         temperature: Sampling temperature.
@@ -70,16 +68,16 @@ def submit_batch(
 
     requests = [
         _make_request(
-            custom_id=f"{experiment}_{condition}_{effort}_{i:04d}",
+            custom_id=f"{experiment}_{condition}_{i:04d}",
             prompt=prompt,
-            reasoning_effort=effort,
+            reasoning_effort=REASONING_EFFORT,
             temperature=temperature,
         )
         for i in range(n_samples)
     ]
 
     batch = client.messages.batches.create(requests=requests)
-    print(f"Submitted batch {batch.id} — {n_samples} requests for cell {experiment}_{condition}_{effort}")
+    print(f"Submitted batch {batch.id} — {n_samples} requests for cell {experiment}_{condition}")
     return batch.id
 
 
@@ -150,15 +148,14 @@ def retrieve_results(batch_id: str, out_path: Path) -> int:
 def run_cell(
     experiment: str,
     condition: str,
-    effort: str,
     prompt: str,
     n_samples: int,
     temperature: float = TEMPERATURE,
 ) -> Path:
     """Submit, poll, and retrieve a full cell. Returns path to written JSONL."""
-    batch_id = submit_batch(experiment, condition, effort, prompt, n_samples, temperature)
+    batch_id = submit_batch(experiment, condition, prompt, n_samples, temperature)
     poll_batch(batch_id)
-    out = raw_output_path(experiment, condition, effort)
+    out = raw_output_path(experiment, condition)
     n_ok = retrieve_results(batch_id, out)
     print(f"  Wrote {n_ok}/{n_samples} results to {out}")
     return out

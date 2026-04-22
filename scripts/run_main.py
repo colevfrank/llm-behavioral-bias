@@ -1,4 +1,4 @@
-"""Main experiment runner — submits all 32 cells via the Batch API.
+"""Main experiment runner — submits all 16 cells via the Batch API.
 
 Run with:
     uv run python scripts/run_main.py [--pilot]
@@ -47,15 +47,15 @@ def main():
 
     print(f"=== Main run: {len(cells)} cells × {n_samples} samples = {len(cells) * n_samples} total calls ===\n")
 
-    for experiment, condition, effort in cells:
-        cell = f"{experiment}_{condition}_{effort}"
+    for experiment, condition in cells:
+        cell = f"{experiment}_{condition}"
         print(f"\n--- Cell: {cell} ---")
         try:
             prompt = load_prompt(experiment, condition)
         except (FileNotFoundError, ValueError) as e:
             print(f"  SKIP: {e}")
             continue
-        run_cell(experiment, condition, effort, prompt, n_samples)
+        run_cell(experiment, condition, prompt, n_samples)
 
     print("\n=== Done ===")
 

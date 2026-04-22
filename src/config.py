@@ -15,7 +15,7 @@ TEMPERATURE = 0.5
 # ── Study design ──────────────────────────────────────────────────────────────
 EXPERIMENTS = ["Q1", "Q4", "Q5", "Q13"]
 CONDITIONS = ["0", "A", "B", "C"]
-EFFORT_LEVELS = ["low", "high"]
+REASONING_EFFORT = "low"  # held constant across all cells
 
 SAMPLES_PILOT = 5
 SAMPLES_MAIN = 50
@@ -33,24 +33,23 @@ Q13_CANONICAL: dict[str, tuple[str, str, str]] = {
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
-def cell_id(experiment: str, condition: str, effort: str) -> str:
-    """Canonical identifier for one experimental cell, e.g. 'Q1_0_low'."""
-    return f"{experiment}_{condition}_{effort}"
+def cell_id(experiment: str, condition: str) -> str:
+    """Canonical identifier for one experimental cell, e.g. 'Q1_0'."""
+    return f"{experiment}_{condition}"
 
 
 def stimulus_path(experiment: str, condition: str) -> Path:
     return STIMULI_DIR / f"{experiment}_{condition}.json"
 
 
-def raw_output_path(experiment: str, condition: str, effort: str) -> Path:
-    return DATA_RAW_DIR / f"{cell_id(experiment, condition, effort)}.jsonl"
+def raw_output_path(experiment: str, condition: str) -> Path:
+    return DATA_RAW_DIR / f"{cell_id(experiment, condition)}.jsonl"
 
 
-def all_cells() -> list[tuple[str, str, str]]:
-    """Return all (experiment, condition, effort) triples."""
+def all_cells() -> list[tuple[str, str]]:
+    """Return all (experiment, condition) pairs — 16 cells total."""
     return [
-        (exp, cond, effort)
+        (exp, cond)
         for exp in EXPERIMENTS
         for cond in CONDITIONS
-        for effort in EFFORT_LEVELS
     ]

@@ -19,9 +19,9 @@ SMOKE_PROMPT = "What is 2+2? Reply in JSON with field 'answer'."
 def main():
     print("=== Smoke test ===")
     print(f"Prompt: {SMOKE_PROMPT!r}")
-    print("Calling model (effort=low) ...")
+    print("Calling model ...")
 
-    result = call_model(prompt=SMOKE_PROMPT, reasoning_effort="low")
+    result = call_model(prompt=SMOKE_PROMPT)
 
     print(f"\nLatency: {result['latency_ms']} ms")
     print(f"Usage:   {result['usage']}")

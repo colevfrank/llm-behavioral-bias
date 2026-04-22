@@ -7,7 +7,7 @@ import anthropic
 from dotenv import load_dotenv
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from src.config import MODEL, TEMPERATURE
+from src.config import MODEL, REASONING_EFFORT, TEMPERATURE
 
 load_dotenv()
 
@@ -27,14 +27,14 @@ def _get_client() -> anthropic.Anthropic:
 )
 def call_model(
     prompt: str,
-    reasoning_effort: str,
+    reasoning_effort: str = REASONING_EFFORT,
     temperature: float = TEMPERATURE,
 ) -> dict:
     """Make a single synchronous call to the model.
 
     Args:
         prompt: User message text.
-        reasoning_effort: "low" or "high" — passed to adaptive thinking.
+        reasoning_effort: Passed to adaptive thinking (default: REASONING_EFFORT = "low").
         temperature: Sampling temperature (default 0.5 per Bini et al.).
 
     Returns:

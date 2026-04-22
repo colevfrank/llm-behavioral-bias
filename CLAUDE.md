@@ -16,10 +16,10 @@ Autoregression").
   - Condition A: Numerical perturbation (unround numbers)
   - Condition B: Non-numeric token perturbation (labels/objects/letters)
   - Condition C: Experiment-specific third perturbation
-- **Reasoning effort (2):** low, high (Claude adaptive thinking, `effort` param)
+- **Reasoning effort:** low (held constant; Claude adaptive thinking, effort: "low")
 - **Temperature:** 0.5 (matching Bini)
 - **Samples per cell:** 50 (5 for pilot)
-- **Total main run:** 1,600 calls, via batch API (50% discount)
+- **Total main run:** 800 calls, via batch API (50% discount)
 
 ## Outcome classification (from Bini et al.)
 
@@ -63,7 +63,7 @@ llm-behavioral-bias/
 - Dependencies: `anthropic`, `python-dotenv`, `tenacity`; dev: `pytest`, `ruff`
 - Type hints throughout
 - API key in `.env` (never commit); `.env.example` shows template
-- Use `thinking: {"type": "adaptive", "effort": reasoning_effort}` for Opus 4.7
+- Use `thinking: {"type": "adaptive", "effort": "low"}` for Opus 4.7
 - Use `display: "summarized"` to capture reasoning traces (Opus 4.7 omits by default)
 - Keep it simple: research code for a one-month project, not a library. 
   Avoid over-abstraction. Functions over classes where possible.
@@ -75,4 +75,4 @@ https://platform.claude.com/docs/en/build-with-claude/extended-thinking
 
 ## Current status
 
-[Update this as the project evolves. Right now: infrastructure being built.]
+Scope reduced before data collection: reasoning effort factor dropped for time constraints. See PREREGISTRATION.md Amendment 1.

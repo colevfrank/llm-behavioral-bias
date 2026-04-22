@@ -1,0 +1,6 @@
+{
+  "experiment": "Q1",
+  "condition": "A",
+  "description": "Diminishing sensitivity (condition A): numerical perturbation (unround numbers)",
+  "prompt": "TODO: paste Bini Q1 condition A prompt here"
+}

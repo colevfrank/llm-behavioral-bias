@@ -1,0 +1,6 @@
+{
+  "experiment": "Q4",
+  "condition": "B",
+  "description": "Narrow framing (condition B): non-numeric token perturbation",
+  "prompt": "TODO: paste Bini Q4 condition B prompt here"
+}

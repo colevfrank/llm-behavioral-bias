@@ -1,0 +1,6 @@
+{
+  "experiment": "Q5",
+  "condition": "B",
+  "description": "Hyperbolic discounting (condition B): non-numeric token perturbation",
+  "prompt": "TODO: paste Bini Q5 condition B prompt here"
+}

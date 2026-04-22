@@ -205,3 +205,11 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Project-specific: raw and processed data (potentially large / sensitive)
+data/raw/*.jsonl
+data/processed/
+
+# Keep .gitkeep sentinels
+!data/raw/.gitkeep
+!data/processed/.gitkeep

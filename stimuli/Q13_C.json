@@ -1,0 +1,6 @@
+{
+  "experiment": "Q13",
+  "condition": "C",
+  "description": "Wason selection task (condition C): experiment-specific perturbation; update Q13_CANONICAL in config.py",
+  "prompt": "TODO: paste Bini Q13 condition C prompt here"
+}

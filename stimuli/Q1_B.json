@@ -1,0 +1,6 @@
+{
+  "experiment": "Q1",
+  "condition": "B",
+  "description": "Diminishing sensitivity (condition B): non-numeric token perturbation",
+  "prompt": "TODO: paste Bini Q1 condition B prompt here"
+}

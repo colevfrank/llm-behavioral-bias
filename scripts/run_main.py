@@ -1,12 +1,16 @@
 """Main experiment runner — submits all cells as a single batch via the Batch API.
 
 Run with:
-    uv run python scripts/run_main.py [--test | --pilot]
+    uv run python scripts/run_main.py [--test | --pilot] [--model MODEL]
 
 Flags:
-    --test    1 sample per cell (verify routing end-to-end)
-    --pilot   5 samples per cell
-    (default) 50 samples per cell
+    --test           1 sample per cell (verify routing end-to-end)
+    --pilot          5 samples per cell
+    (default)        50 samples per cell
+    --model MODEL    Short alias or full model ID (default: opus-4.6)
+                     Aliases: opus-4.6, 3-opus
+
+Results are written to data/raw/{model_id}/<cell>.jsonl.
 
 NOTE: Stimulus files must be fully populated before running.
       Check stimuli/*.json and replace all TODO placeholders.
@@ -21,9 +25,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.batch_runner import run_all_cells
 from src.config import (
+    DEFAULT_MODEL,
+    MODEL_CHOICES,
     SAMPLES_MAIN,
     SAMPLES_PILOT,
     all_cells,
+    resolve_model,
     stimulus_path,
 )
 
@@ -44,7 +51,14 @@ def main():
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--test", action="store_true", help="1 sample per cell (routing check)")
     group.add_argument("--pilot", action="store_true", help="5 samples per cell")
+    parser.add_argument(
+        "--model",
+        default="opus-4.6",
+        help=f"Model alias or full ID (default: opus-4.6). Aliases: {', '.join(MODEL_CHOICES.keys())}",
+    )
     args = parser.parse_args()
+
+    model = resolve_model(args.model)
 
     if args.test:
         n_samples = 1
@@ -67,16 +81,17 @@ def main():
         print(f"Skipping {len(skipped)} unpopulated cells: {skipped}\n")
 
     total = len(cells_with_prompts) * n_samples
+    print(f"=== Model: {model} ===")
     print(f"=== Submitting {len(cells_with_prompts)} cells × {n_samples} samples = {total} requests as ONE batch ===\n")
 
     if not cells_with_prompts:
         print("No cells to run — populate stimuli files first.")
         return
 
-    counts = run_all_cells(cells_with_prompts, n_samples)
+    counts = run_all_cells(cells_with_prompts, n_samples, model=model)
 
     total_ok = sum(counts.values())
-    print(f"\n=== Done: {total_ok}/{total} requests succeeded ===")
+    print(f"\n=== Done: {total_ok}/{total} requests succeeded ({model}) ===")
 
 
 if __name__ == "__main__":

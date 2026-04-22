@@ -13,7 +13,7 @@ from pathlib import Path
 import anthropic
 from dotenv import load_dotenv
 
-from src.config import MODEL, TEMPERATURE, cell_id, raw_output_path
+from src.config import DEFAULT_MODEL, TEMPERATURE, cell_id, raw_output_path
 
 load_dotenv()
 
@@ -31,12 +31,13 @@ def _make_request(
     custom_id: str,
     prompt: str,
     temperature: float,
+    model: str,
 ) -> dict:
     """Build one request entry for the Messages Batch API."""
     return {
         "custom_id": custom_id,
         "params": {
-            "model": MODEL,
+            "model": model,
             "max_tokens": 4096,
             "temperature": temperature,
             "messages": [{"role": "user", "content": prompt}],
@@ -71,14 +72,14 @@ def poll_batch(batch_id: str, poll_interval_s: int = POLL_INTERVAL_S):
         time.sleep(poll_interval_s)
 
 
-def retrieve_and_demux(batch_id: str) -> dict[str, int]:
+def retrieve_and_demux(batch_id: str, model: str = DEFAULT_MODEL) -> dict[str, int]:
     """Stream batch results and write to per-cell JSONL files.
 
-    Demuxes by parsing the custom_id prefix (e.g. "Q1_0_0042" → cell "Q1_0").
-    Each JSONL line: {custom_id, text, usage, error}.
+    Demuxes by parsing the custom_id prefix (e.g. "Q1_0_0042" -> cell "Q1_0").
+    Output goes to data/raw/{model}/{cell_id}.jsonl.
 
     Returns:
-        dict mapping cell_id → number of successful results.
+        dict mapping cell_id -> number of successful results.
     """
     client = _get_client()
     file_handles: dict[str, object] = {}
@@ -87,16 +88,12 @@ def retrieve_and_demux(batch_id: str) -> dict[str, int]:
     try:
         for result in client.messages.batches.results(batch_id):
             cid = result.custom_id
-            # custom_id format: {experiment}_{condition}_{sample_id}
-            # cell = everything before the last underscore segment
             parts = cid.rsplit("_", 1)
             cell = parts[0]
 
-            # Open file handle lazily
             if cell not in file_handles:
-                # Parse experiment and condition from the cell id
                 exp_parts = cell.split("_", 1)
-                out_path = raw_output_path(exp_parts[0], exp_parts[1])
+                out_path = raw_output_path(exp_parts[0], exp_parts[1], model)
                 out_path.parent.mkdir(parents=True, exist_ok=True)
                 file_handles[cell] = out_path.open("w")
                 counts[cell] = 0
@@ -129,6 +126,7 @@ def build_requests(
     cells: list[tuple[str, str, str]],
     n_samples: int,
     temperature: float = TEMPERATURE,
+    model: str = DEFAULT_MODEL,
 ) -> list[dict]:
     """Build all request dicts for a list of (experiment, condition, prompt) triples."""
     requests = []
@@ -139,6 +137,7 @@ def build_requests(
                     custom_id=f"{experiment}_{condition}_{i:04d}",
                     prompt=prompt,
                     temperature=temperature,
+                    model=model,
                 )
             )
     return requests
@@ -148,20 +147,22 @@ def run_all_cells(
     cells: list[tuple[str, str, str]],
     n_samples: int,
     temperature: float = TEMPERATURE,
+    model: str = DEFAULT_MODEL,
 ) -> dict[str, int]:
     """Submit all cells as a single batch, poll, retrieve, and demux.
 
     Args:
         cells: list of (experiment, condition, prompt) triples.
         n_samples: samples per cell.
+        model: API model string.
 
     Returns:
-        dict mapping cell_id → number of successful results.
+        dict mapping cell_id -> number of successful results.
     """
-    requests = build_requests(cells, n_samples, temperature)
+    requests = build_requests(cells, n_samples, temperature, model)
     batch_id = submit_batch(requests)
     poll_batch(batch_id)
-    counts = retrieve_and_demux(batch_id)
+    counts = retrieve_and_demux(batch_id, model)
 
     for cid, n_ok in sorted(counts.items()):
         print(f"  {cid}: {n_ok}/{n_samples} succeeded")
@@ -177,14 +178,15 @@ def run_cell(
     prompt: str,
     n_samples: int,
     temperature: float = TEMPERATURE,
+    model: str = DEFAULT_MODEL,
 ) -> Path:
     """Submit, poll, and retrieve a single cell. Returns path to written JSONL."""
-    requests = build_requests([(experiment, condition, prompt)], n_samples, temperature)
+    requests = build_requests([(experiment, condition, prompt)], n_samples, temperature, model)
     batch_id = submit_batch(requests)
     poll_batch(batch_id)
-    counts = retrieve_and_demux(batch_id)
+    counts = retrieve_and_demux(batch_id, model)
     cid = cell_id(experiment, condition)
     n_ok = counts.get(cid, 0)
-    out = raw_output_path(experiment, condition)
+    out = raw_output_path(experiment, condition, model)
     print(f"  Wrote {n_ok}/{n_samples} results to {out}")
     return out

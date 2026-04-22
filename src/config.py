@@ -9,8 +9,22 @@ DATA_RAW_DIR = ROOT / "data" / "raw"
 DATA_PROCESSED_DIR = ROOT / "data" / "processed"
 
 # ── Model ──────────────────────────────────────────────────────────────────────
-MODEL = "claude-opus-4-6"
+DEFAULT_MODEL = "claude-opus-4-6"
 TEMPERATURE = 0.5
+
+MODEL_CHOICES = {
+    "opus-4.6": "claude-opus-4-6",
+    "3-opus": "claude-3-opus-20240229",
+}
+
+
+def resolve_model(name: str) -> str:
+    """Resolve a short alias or full model ID to a valid API model string."""
+    if name in MODEL_CHOICES:
+        return MODEL_CHOICES[name]
+    if name in MODEL_CHOICES.values():
+        return name
+    raise ValueError(f"Unknown model {name!r}. Valid: {list(MODEL_CHOICES.keys())}")
 
 # ── Study design ──────────────────────────────────────────────────────────────
 EXPERIMENTS = ["Q1", "Q4", "Q5", "Q13"]
@@ -40,8 +54,8 @@ def stimulus_path(experiment: str, condition: str) -> Path:
     return STIMULI_DIR / f"{experiment}_{condition}.json"
 
 
-def raw_output_path(experiment: str, condition: str) -> Path:
-    return DATA_RAW_DIR / f"{cell_id(experiment, condition)}.jsonl"
+def raw_output_path(experiment: str, condition: str, model: str = DEFAULT_MODEL) -> Path:
+    return DATA_RAW_DIR / model / f"{cell_id(experiment, condition)}.jsonl"
 
 
 def all_cells() -> list[tuple[str, str]]:
